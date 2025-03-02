@@ -1,0 +1,15 @@
+[package]
+name = "geomancer"
+version = "0.0.1"
+edition = "2021"
+authors = ["AndrewB330"]
+readme = "README.md"
+description = "Performance-oriented Rust library providing a suite of geometry primitives and algorithms."
+documentation = "https://docs.rs/geomancer"
+repository = "https://github.com/AndrewB330/geomancer"
+homepage = "https://github.com/AndrewB330/geomancer"
+license = "MIT OR Apache-2.0"
+keywords = ["geometry", "algorithms"]
+categories = ["algorithms", "graphics"]
+
+[dependencies]
