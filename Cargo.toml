@@ -13,3 +13,4 @@ keywords = ["geometry", "algorithms"]
 categories = ["algorithms", "graphics"]
 
 [dependencies]
+num-traits = "0.2"
