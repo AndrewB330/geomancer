@@ -10,7 +10,9 @@ pub trait Kernel2D {
     type Field: FieldNumber;
 }
 
-pub trait ExactPredicates2D: Kernel2D {
+pub unsafe trait ExactPredicates2D: Kernel2D {
+    fn is_same_point(a: &Self::Point, b: &Self::Point) -> bool;
+
     fn compare_distance(a: &Self::Point, b: &Self::Point, to: &Self::Point) -> Ordering;
 
     fn compare_length(a: &Self::Point, b: &Self::Point) -> Ordering;

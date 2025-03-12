@@ -3,6 +3,7 @@ use std::fmt;
 #[derive(Debug)]
 pub enum GeometryError {
     InputValueInvalidForField,
+    ExactPredicateReturnedConflictingResult(String),
 }
 
 impl fmt::Display for GeometryError {
@@ -11,6 +12,11 @@ impl fmt::Display for GeometryError {
             GeometryError::InputValueInvalidForField => write!(
                 f,
                 "Input contains an invalid value (Most likely NaN or infinite value)"
+            ),
+            GeometryError::ExactPredicateReturnedConflictingResult(details) => write!(
+                f,
+                "Exact predicate evaluation returned conflicting results. Details: {}",
+                details
             ),
         }
     }
