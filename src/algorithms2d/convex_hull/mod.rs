@@ -285,4 +285,15 @@ mod test {
             &[0],
         );
     }
+
+    #[test]
+    fn square() {
+        // Points are too close together to meaningfully compute convex hull.
+        // The best approximation is single point, since we are alowing approximation to
+        // be slightly smaller than the exact convex hull. See ConvexHull guarantees for more details.
+        assert_convex_hull_f32(
+            &[(0.0, 0.0), (1.0, 1.0), (1.0, 0.0), (0.0, 1.0)],
+            &[0, 2, 1, 3],
+        );
+    }
 }
