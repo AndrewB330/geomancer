@@ -4,7 +4,7 @@ use crate::common::Orientation2D;
 
 use super::{FieldNumber, Point2D, RealFieldNumber};
 
-/// Defines basic 2D geometric operations using an abstract number and point type.
+/// Base trait for 2 dimensional geometric kernel that defines number and point type.
 pub trait Kernel2D {
     type Point: Point2D<Field = Self::Field>;
     type Field: FieldNumber;
