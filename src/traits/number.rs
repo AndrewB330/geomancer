@@ -1,29 +1,21 @@
-use std::fmt::Debug;
+use num_traits::{Float, One, Zero};
 
-use num_traits::{Float, Num};
-
-pub trait Number: Sized + Clone + Debug + Num {}
-
-pub trait RealNumber: Number + Float {}
-
-pub trait FieldNumber: Number {
+pub trait FieldNumber: One + Zero {
     fn is_valid(&self) -> bool;
 
     fn is_exact() -> bool;
 }
 
-impl Number for f32 {}
-impl Number for f64 {}
+pub trait RealFieldNumber: FieldNumber + Float {}
 
-impl RealNumber for f32 {}
-impl RealNumber for f64 {}
-
-impl<F: RealNumber> FieldNumber for F {
+impl<F: Float> FieldNumber for F {
     fn is_valid(&self) -> bool {
         !self.is_nan() && !self.is_infinite()
     }
-    
+
     fn is_exact() -> bool {
         false
     }
 }
+
+impl<F: FieldNumber + Float> RealFieldNumber for F {}

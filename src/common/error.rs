@@ -8,7 +8,10 @@ pub enum GeometryError {
 impl fmt::Display for GeometryError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            GeometryError::InputValueInvalidForField => write!(f, "Input contains an invalid value (Most likely NaN or infinite value)"),
+            GeometryError::InputValueInvalidForField => write!(
+                f,
+                "Input contains an invalid value (Most likely NaN or infinite value)"
+            ),
         }
     }
 }
