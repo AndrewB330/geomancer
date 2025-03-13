@@ -69,6 +69,7 @@ mod test {
     use bevy_math::Vec2;
 
     use crate::algorithms::convex_hull;
+    use crate::common::assert_eq_cycle;
 
     #[test]
     fn bevy_kernel_simple_test() {
@@ -79,6 +80,6 @@ mod test {
             Vec2::new(7.0, 7.0),
         ];
         let result = convex_hull(&points);
-        assert_eq!(result.unwrap().hull_indices().clone(), vec![0, 1, 3]);
+        assert_eq_cycle(result.unwrap().hull_indices().clone(), vec![0, 1, 3]);
     }
 }
