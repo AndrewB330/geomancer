@@ -8,7 +8,7 @@
 Performance-oriented Rust library providing a suite of geometry primitives and algorithms for efficient computational geometry.
 
 Supported types:
-- `Vec2` from [`bevy`](https://github.com/bevyengine/bevy) crate (use `bevy` feature)
+- `Vec2` from [`bevy`](https://github.com/bevyengine/bevy) crate (use `bevy_math` feature)
 - `Point2<T>` from [`nalgebra`](https://github.com/dimforge/nalgebra) crate (use `nalgebra` feature)
 
 ## Examples

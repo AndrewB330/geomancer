@@ -1,6 +1,6 @@
-#[cfg(feature = "bevy")]
+#[cfg(feature = "bevy_math")]
 mod bevy;
-#[cfg(feature = "bevy")]
+#[cfg(feature = "bevy_math")]
 pub use bevy::BevyVec2Kernel;
 
 #[cfg(feature = "nalgebra")]

@@ -17,6 +17,7 @@ where
                 farthest_point = i;
             }
         }
+    } else {
         for i in 1..points.len() {
             if K::RealField::from(K::length_sqr(&points[farthest_point]))
                 < K::RealField::from(K::length_sqr(&points[i]))
@@ -28,10 +29,14 @@ where
     farthest_point
 }
 
-pub(super) fn convex_hull_impl<K>(points: &[K::Point]) -> Result<Vec<usize>, GeometryError>
+pub(super) fn convex_hull_impl<K>(points: &[K::Point]) -> Result<(Vec<usize>, bool), GeometryError>
 where
     K: Kernel2D + Operations2D + RealOperations2D,
 {
+    if points.is_empty() {
+        return Err(GeometryError::InputIsEmpty);
+    }
+
     for p in points {
         if !p.x().is_valid() || !p.y().is_valid() {
             return Err(GeometryError::InputValueInvalidForField);
@@ -39,8 +44,8 @@ where
     }
 
     // todo: add short comment why this if is there
-    if points.len() <= 1 {
-        return Ok((0..points.len()).collect());
+    if points.len() == 1 {
+        return Ok((vec![0], true));
     }
 
     let first_point = farthest_point::<K>(points, None);
@@ -60,7 +65,7 @@ where
     // to each other to build a convex hull from more than one point.
     // Return single point, because it is the best approximation of a convex hull in this case.
     if distance < epsilon * K::RealField::from(2.0) {
-        return Ok(vec![first_point]);
+        return Ok((vec![first_point], true));
     }
 
     let mut candidates_left: Vec<usize> = vec![];
@@ -87,6 +92,7 @@ where
     }
 
     let mut result = vec![];
+    let degenerate = candidates_left.is_empty() && candidates_right.is_empty();
 
     quickhull_recursive::<K>(
         points,
@@ -105,7 +111,7 @@ where
         &mut result,
     );
 
-    Ok(result)
+    Ok((result, degenerate))
 }
 
 fn quickhull_recursive<K>(
@@ -170,14 +176,19 @@ fn quickhull_recursive<K>(
     }
 
     quickhull_recursive::<K>(points, right_point, farthest, right, epsilon, result);
-    quickhull_recursive::<K>(points, farthest, right_point, left, epsilon, result);
+    quickhull_recursive::<K>(points, farthest, left_point, left, epsilon, result);
 }
 
 #[cfg(test)]
 mod test {
     use core::f32;
 
-    use crate::traits::{DefaultKernel, Kernel2D, Operations2D, Point2D, RealOperations2D};
+    use crate::{
+        common::Orientation2D,
+        traits::{
+            DefaultKernel, ExactPredicates2D, Kernel2D, Operations2D, Point2D, RealOperations2D,
+        },
+    };
 
     use super::convex_hull_impl;
 
@@ -253,6 +264,48 @@ mod test {
         }
     }
 
+    // Bad implementation, using just cast to f64, not precise, just for now for tests.
+    unsafe impl ExactPredicates2D for F32TupleKernel {
+        fn is_same_point(a: &Self::Point, b: &Self::Point) -> bool {
+            a.x() == b.x() && a.y() == b.y()
+        }
+
+        fn compare_distance(
+            a: &Self::Point,
+            b: &Self::Point,
+            to: &Self::Point,
+        ) -> std::cmp::Ordering {
+            let adx = a.x() as f64 - to.x() as f64;
+            let ady = a.y() as f64 - to.y() as f64;
+            let bdx = b.x() as f64 - to.x() as f64;
+            let bdy = b.y() as f64 - to.y() as f64;
+            (adx * adx + ady * ady)
+                .partial_cmp(&(bdx * bdx + bdy * bdy))
+                .unwrap()
+        }
+
+        fn compare_length(a: &Self::Point, b: &Self::Point) -> std::cmp::Ordering {
+            Self::compare_distance(a, b, &(0.0, 0.0))
+        }
+
+        fn orientation(
+            a: &Self::Point,
+            b: &Self::Point,
+            c: &Self::Point,
+        ) -> crate::prelude::Orientation2D {
+            let adx = a.x() as f64 - c.x() as f64;
+            let ady = a.y() as f64 - c.y() as f64;
+            let bdx = b.x() as f64 - c.x() as f64;
+            let bdy = b.y() as f64 - c.y() as f64;
+            let cross = adx * bdy - ady * bdx;
+            match cross.partial_cmp(&0.0).unwrap() {
+                std::cmp::Ordering::Less => Orientation2D::Clockwise,
+                std::cmp::Ordering::Equal => Orientation2D::Collinear,
+                std::cmp::Ordering::Greater => Orientation2D::CounterClockwise,
+            }
+        }
+    }
+
     impl DefaultKernel for (f32, f32) {
         type Kernel = F32TupleKernel;
     }
@@ -269,7 +322,7 @@ mod test {
         let hull = convex_hull_impl::<V::Kernel>(points);
         assert!(hull.is_ok());
 
-        let hull = hull.unwrap();
+        let hull = hull.unwrap().0;
 
         if expected.len() == 1 {
             return;
@@ -286,7 +339,9 @@ mod test {
 
         assert!(
             offset.is_some(),
-            "First point of expected convex hull not found."
+            "First point of expected convex hull not found. {:?} {:?}",
+            hull,
+            expected
         );
         let offset = offset.unwrap();
 
@@ -309,7 +364,7 @@ mod test {
 
     #[test]
     fn collinear() {
-        assert_convex_hull_f32(&[(0.1, 0.3), (0.01, 0.03), (1., 3.), (0.3, 0.9)], &[0, 2]);
+        assert_convex_hull_f32(&[(0.1, 0.3), (0.01, 0.03), (1., 3.), (0.3, 0.9)], &[1, 2]);
     }
 
     #[test]

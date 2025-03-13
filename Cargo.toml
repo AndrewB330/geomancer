@@ -17,7 +17,11 @@ num-traits = "0.2"
 # Optional dependencies
 bevy_math = { package = "bevy_math", version = "0.15", optional = true, default-features = false }
 nalgebra = { package = "nalgebra", version = "0.33", optional = true, default-features = false }
+geo = { package = "geo", version = "0.29", optional = true, default-features = false }
 
 [features]
 default = []
-bevy = ["bevy_math"]
+
+[dev-dependencies]
+rstest = "0.25"
+rand = "0.9"

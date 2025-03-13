@@ -1,6 +1,6 @@
-pub mod kernel;
-pub mod number;
-pub mod point2d;
+mod kernel;
+mod number;
+mod point2d;
 
 pub use kernel::*;
 pub use number::*;

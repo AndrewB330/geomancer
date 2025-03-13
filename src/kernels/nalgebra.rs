@@ -2,7 +2,9 @@ use std::marker::PhantomData;
 
 use nalgebra::{ClosedAddAssign, ClosedMulAssign, ClosedSubAssign, Point2, Vector2};
 
-use crate::traits::{DefaultKernel, FieldNumber, Kernel2D, Operations2D, Point2D, RealFieldNumber, RealOperations2D};
+use crate::traits::{
+    DefaultKernel, FieldNumber, Kernel2D, Operations2D, Point2D, RealFieldNumber, RealOperations2D,
+};
 
 pub struct NalgebraVector2Kernel<T>(PhantomData<T>);
 pub struct NalgebraPoint2Kernel<T>(PhantomData<T>);
@@ -75,7 +77,8 @@ impl<T: Clone + FieldNumber + ClosedAddAssign + ClosedMulAssign + ClosedSubAssig
     }
 }
 
-impl<T: FieldNumber + Clone + ClosedAddAssign + ClosedMulAssign + ClosedSubAssign> Operations2D for NalgebraPoint2Kernel<T>
+impl<T: FieldNumber + Clone + ClosedAddAssign + ClosedMulAssign + ClosedSubAssign> Operations2D
+    for NalgebraPoint2Kernel<T>
 {
     fn length_sqr(a: &Self::Point) -> Self::Field {
         a.coords.dot(&a.coords)
@@ -105,11 +108,15 @@ impl<T: FieldNumber + Clone + ClosedAddAssign + ClosedMulAssign + ClosedSubAssig
     }
 }
 
-impl<T: RealFieldNumber + ClosedAddAssign + ClosedMulAssign + ClosedSubAssign + From<f32>> RealOperations2D for NalgebraVector2Kernel<T> {
+impl<T: RealFieldNumber + ClosedAddAssign + ClosedMulAssign + ClosedSubAssign + From<f32>>
+    RealOperations2D for NalgebraVector2Kernel<T>
+{
     type RealField = T;
 }
 
-impl<T: RealFieldNumber + ClosedAddAssign + ClosedMulAssign + ClosedSubAssign + From<f32>> RealOperations2D for NalgebraPoint2Kernel<T> {
+impl<T: RealFieldNumber + ClosedAddAssign + ClosedMulAssign + ClosedSubAssign + From<f32>>
+    RealOperations2D for NalgebraPoint2Kernel<T>
+{
     type RealField = T;
 }
 
@@ -125,7 +132,7 @@ impl<T: Clone + FieldNumber> DefaultKernel for Point2<T> {
 mod test {
     use nalgebra::{Point2, Vector2};
 
-    use crate::algorithms2d::convex_hull;
+    use crate::algorithms::convex_hull;
 
     #[test]
     fn nalgbra_point2_kernel_simple_test() {

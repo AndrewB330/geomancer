@@ -2,8 +2,11 @@ use std::fmt;
 
 #[derive(Debug)]
 pub enum GeometryError {
+    InputIsEmpty,
     InputValueInvalidForField,
     ExactPredicateReturnedConflictingResult(String),
+    DegenerateGeometry,
+    NotConvexGeometry,
 }
 
 impl fmt::Display for GeometryError {
@@ -17,6 +20,16 @@ impl fmt::Display for GeometryError {
                 f,
                 "Exact predicate evaluation returned conflicting results. Details: {}",
                 details
+            ),
+            GeometryError::InputIsEmpty => {
+                write!(f, "Input is empty. Expected at least one element.")
+            }
+            GeometryError::DegenerateGeometry => {
+                write!(f, "The geometry is degenerate and cannot be processed.")
+            }
+            GeometryError::NotConvexGeometry => write!(
+                f,
+                "The geometry is not convex, which is required for this operation."
             ),
         }
     }

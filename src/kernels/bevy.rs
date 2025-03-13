@@ -68,7 +68,7 @@ impl DefaultKernel for Vec2 {
 mod test {
     use bevy_math::Vec2;
 
-    use crate::algorithms2d::convex_hull;
+    use crate::algorithms::convex_hull;
 
     #[test]
     fn bevy_kernel_simple_test() {

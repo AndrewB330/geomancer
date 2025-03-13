@@ -8,7 +8,7 @@ use super::{FieldNumber, Point2D, RealFieldNumber};
 
 /// Base trait for 2 dimensional geometric kernel that defines number and point type.
 pub trait Kernel2D {
-    type Point: Point2D<Field = Self::Field>;
+    type Point: Point2D<Field = Self::Field> + Clone;
     type Field: FieldNumber;
 }
 

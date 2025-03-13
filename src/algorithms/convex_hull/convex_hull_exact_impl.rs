@@ -39,10 +39,14 @@ where
 pub(super) fn convex_hull_exact_impl<K>(
     points: &[K::Point],
     include_colinear: bool,
-) -> Result<Vec<usize>, GeometryError>
+) -> Result<(Vec<usize>, bool), GeometryError>
 where
     K: Kernel2D + ExactPredicates2D,
 {
+    if points.is_empty() {
+        return Err(GeometryError::InputIsEmpty);
+    }
+
     for p in points {
         if !p.x().is_valid() || !p.y().is_valid() {
             return Err(GeometryError::InputValueInvalidForField);
@@ -50,17 +54,18 @@ where
     }
 
     // todo: add short comment why this is here
-    if points.len() <= 1 {
-        return Ok((0..points.len()).collect());
+    if points.len() == 1 {
+        return Ok((vec![0], true));
     }
 
     let first_point = farthest_point::<K>(points, 0);
     let second_point = farthest_point::<K>(points, first_point);
     let rightmost_point = extreme_point::<K>(points, first_point, true);
+    let leftmost_point = extreme_point::<K>(points, first_point, false);
 
     // todo: add short comment why this is here
     if K::is_same_point(&points[first_point], &points[second_point]) {
-        return Ok(vec![first_point]);
+        return Ok((vec![first_point], true));
     }
 
     let mut candidates: Vec<usize> = vec![];
@@ -69,6 +74,10 @@ where
         if !K::is_same_point(&points[first_point], &points[i]) {
             candidates.push(i);
         }
+    }
+
+    if candidates.is_empty() {
+        return Ok((vec![first_point, second_point], true));
     }
 
     let mut sorting_error = Ok(());
@@ -146,7 +155,13 @@ where
         result.push(candidate);
     }
 
-    Ok(result)
+    let degenerate = K::orientation(
+        &points[leftmost_point],
+        &points[rightmost_point],
+        &points[first_point],
+    ) == Orientation2D::Collinear;
+
+    Ok((result, degenerate))
 }
 
 #[cfg(test)]
@@ -273,7 +288,7 @@ mod test {
         let hull = convex_hull_exact_impl::<V::Kernel>(points, include_collinear);
         assert!(hull.is_ok());
 
-        let hull = hull.unwrap();
+        let hull = hull.unwrap().0;
 
         let mut offset = None;
 
