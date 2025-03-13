@@ -26,18 +26,6 @@ pub(crate) fn assert_eq_cycle(a: Vec<usize>, b: Vec<usize>) {
     assert_eq!(a, b);
 }
 
-impl Point2D for (f32, f32) {
-    type Field = f32;
-
-    fn x(&self) -> Self::Field {
-        self.0
-    }
-
-    fn y(&self) -> Self::Field {
-        self.1
-    }
-}
-
 pub struct F32TupleKernel;
 
 impl Kernel2D for F32TupleKernel {
@@ -132,22 +120,6 @@ unsafe impl ExactPredicates2D for F32TupleKernel {
     }
 }
 
-impl DefaultKernel for (f32, f32) {
-    type Kernel = F32TupleKernel;
-}
-
-impl Point2D for (f64, f64) {
-    type Field = f64;
-
-    fn x(&self) -> Self::Field {
-        self.0
-    }
-
-    fn y(&self) -> Self::Field {
-        self.1
-    }
-}
-
 pub struct F64TupleKernel;
 
 impl Kernel2D for F64TupleKernel {
@@ -221,8 +193,4 @@ unsafe impl ExactPredicates2D for F64TupleKernel {
             std::cmp::Ordering::Greater => Orientation2D::CounterClockwise,
         }
     }
-}
-
-impl DefaultKernel for (f64, f64) {
-    type Kernel = F64TupleKernel;
 }

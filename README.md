@@ -11,6 +11,33 @@ Supported types:
 - `Vec2` from [`bevy`](https://github.com/bevyengine/bevy) crate (use `bevy_math` feature)
 - `Point2<T>` from [`nalgebra`](https://github.com/dimforge/nalgebra) crate (use `nalgebra` feature)
 
+## Default kernels
+Geomancer provides a range of default kernels tailored to different libraries. Each kernel defines a set of operations for a specific vector or point type. By enabling the corresponding feature, the DefaultKernel trait is automatically implemented for that type.
+
+Below is a summary of the supported kernels:
+| Library    | Vector Type      | Default Kernel                | Feature       | Dimension | Exact |
+|------------|------------------|-------------------------------|---------------|-----------|-------|
+| bevy_math  | Vec2             | BevyVec2Kernel                | bevy_math     | 2D        | No    |
+| nalgebra   | Vector2<T>       | NalgebraVector2Kernel<T>      | nalgebra      | 2D        | No    |
+| nalgebra   | Point2<T>        | NalgebraPoint2Kernel<T>       | nalgebra      | 2D        | No    |
+| geo        | Coord<T>         | GeoCoordKernel<T>             | geo           | 2D        | No    |
+|            | (T, T)           | TupleKernel2D<T>              | tuple_kernels | 2D        | No    |
+|            | [T; 2]           | ArrayKernel2D<T>              | array_kernels | 2D        | No    |
+|            | Any V: Point2D   | GenericKernel2D<V>*           | -             | 2D        | No    |
+
+*If the data type or library you are using is not listed, you can still use the generic kernel. The generic kernel works with any type that implements the Point2D trait. Simply add the following implementations to your code:
+```rust
+impl Point2D for MY_VECTOR_TYPE { 
+    // Provide the implementation for the Point2D trait.
+}
+
+impl DefaultKernel for MY_VECTOR_TYPE { 
+    type Kernel = GenericKernel2D<MY_VECTOR_TYPE>; 
+}
+
+```
+Using a specialized kernel is preferable when available, as it may include optimizations tailored to that particular vector type.
+
 ## Examples
 ```rust
 use geomancer::algorithms2d::convex_hull;

@@ -183,7 +183,7 @@ mod test {
 
     fn assert_convex_hull<'a, V>(points: &'a [V], expected: &[usize], include_collinear: bool)
     where
-        V: DefaultKernel + Point2D + Clone,
+        V: DefaultKernel + Point2D,
         V::Kernel: ExactPredicates2D,
     {
         let hull = convex_hull_exact_impl::<V::Kernel>(points, include_collinear);

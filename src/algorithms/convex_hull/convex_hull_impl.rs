@@ -185,9 +185,7 @@ mod test {
 
     use crate::{
         common::assert_eq_cycle,
-        traits::{
-            DefaultKernel, Operations2D, Point2D, RealOperations2D,
-        },
+        traits::{DefaultKernel, Operations2D, Point2D, RealOperations2D},
     };
 
     use super::convex_hull_impl;
@@ -198,7 +196,7 @@ mod test {
 
     fn assert_convex_hull<'a, V>(points: &'a [V], expected: &[usize])
     where
-        V: DefaultKernel + Point2D + Clone,
+        V: DefaultKernel + Point2D,
         V::Kernel: Operations2D + RealOperations2D,
     {
         let hull = convex_hull_impl::<V::Kernel>(points);

@@ -1,7 +1,12 @@
 use num_traits::{Float, One, Zero};
-use std::fmt::Debug;
+use std::{
+    fmt::Debug,
+    ops::{Add, Div, Mul, Sub},
+};
 
-pub trait FieldNumber: 'static + One + Zero + PartialEq + Debug {
+pub trait FieldNumber:
+    'static + Clone + One + Zero + Sub + Add + Mul + Div + PartialEq + Debug
+{
     fn is_valid(&self) -> bool;
 
     fn is_exact() -> bool;

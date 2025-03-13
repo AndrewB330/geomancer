@@ -20,7 +20,9 @@ nalgebra = { package = "nalgebra", version = "0.33", optional = true, default-fe
 geo = { package = "geo", version = "0.29", optional = true, default-features = false }
 
 [features]
-default = []
+default = ["geo", "nalgebra", "bevy_math", "tuple_kernels", "array_kernels"]
+tuple_kernels = []
+array_kernels = []
 
 [dev-dependencies]
 rstest = "0.25"
