@@ -1,13 +1,17 @@
 ## Geomancer
 Performance-oriented Rust library providing a suite of geometry primitives and algorithms for efficient computational geometry, ideal for graphics, simulations, and scientific computing.
 
+Supported types:
+- `Vec2` from [`bevy`](https://github.com/bevyengine/bevy) crate (use `bevy` feature)
+- `Point2<T>` from [`nalgebra`](https://github.com/dimforge/nalgebra) crate (use `nalgebra` feature)
+
 ## Examples
 ```rust
 use geomancer::algorithms2d::convex_hull;
 
 // ...
 
-let points = [(0.1, 0.2), (10.0, -1.0), (5.0, 2.0), (7.0, 7.0)];
+let points = [Vec2::new(0.1, 0.2), Vec2::new(10.0, -1.0), Vec2::new(5.0, 2.0), Vec2::new(7.0, 7.0)];
 
 // Regular convex hull algorithm, works well for all real world scenarios.
 // Robustly handles all degenerate cases. If there are points

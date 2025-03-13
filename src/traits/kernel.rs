@@ -1,5 +1,7 @@
 use std::cmp::Ordering;
 
+use num_traits::Float;
+
 use crate::common::Orientation2D;
 
 use super::{FieldNumber, Point2D, RealFieldNumber};
@@ -36,9 +38,13 @@ pub trait Operations2D: Kernel2D {
 
 pub trait RealOperations2D: Kernel2D + Operations2D {
     type RealField: RealFieldNumber + From<Self::Field> + From<f32>;
-    fn length(a: &Self::Point) -> Self::RealField;
+    fn length(a: &Self::Point) -> Self::RealField {
+        Self::RealField::from(Self::length_sqr(a)).sqrt()
+    }
 
-    fn distance(a: &Self::Point, b: &Self::Point) -> Self::RealField;
+    fn distance(a: &Self::Point, b: &Self::Point) -> Self::RealField {
+        Self::RealField::from(Self::distance_sqr(a, b)).sqrt()
+    }
 }
 
 pub trait DefaultKernel {

@@ -14,3 +14,10 @@ categories = ["algorithms", "graphics"]
 
 [dependencies]
 num-traits = "0.2"
+# Optional dependencies
+bevy_math = { package = "bevy_math", version = "0.15", optional = true, default-features = false }
+nalgebra = { package = "nalgebra", version = "0.33", optional = true, default-features = false }
+
+[features]
+default = []
+bevy = ["bevy_math"]
