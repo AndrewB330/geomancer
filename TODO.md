@@ -1,0 +1,11 @@
+## Algorithms to be implemented (TODO)
+- Convex hull (static and dynamic)
+- Farthest pair of points
+- Closest pair of points
+- EMST
+- Proximity queries (Kd Tree)
+- Voronoi diagram
+- Delaunay triangulation
+- Other triangulations
+- Polygon area
+- Point in polygon check
