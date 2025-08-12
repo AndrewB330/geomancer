@@ -12,8 +12,6 @@ pub trait FieldNumber:
     fn is_exact() -> bool;
 }
 
-pub trait RealFieldNumber: FieldNumber + Float {}
-
 impl<F: 'static + Float + Debug> FieldNumber for F {
     fn is_valid(&self) -> bool {
         !self.is_nan() && !self.is_infinite()
@@ -23,5 +21,7 @@ impl<F: 'static + Float + Debug> FieldNumber for F {
         false
     }
 }
+
+pub trait RealFieldNumber: FieldNumber + Float {}
 
 impl<F: FieldNumber + Float> RealFieldNumber for F {}

@@ -190,6 +190,7 @@ dependencies = [
  "nalgebra",
  "num-traits",
  "rand",
+ "robust",
  "rstest",
 ]
 
