@@ -1,131 +1,47 @@
-use std::marker::PhantomData;
+use std::{fmt::Debug, marker::PhantomData};
 
-use nalgebra::{ClosedAddAssign, ClosedMulAssign, ClosedSubAssign, Point2, Vector2};
+use nalgebra::{Point2, Vector2};
+use num_traits::Zero;
 
-use crate::traits::{
-    DefaultKernel, FieldNumber, Kernel2D, Operations2D, Point2D, RealFieldNumber, RealOperations2D,
+use crate::{
+    kernels::GenericKernel2D,
+    traits::{DefaultKernel, Point2D},
 };
 
 pub struct NalgebraVector2Kernel<T>(PhantomData<T>);
 pub struct NalgebraPoint2Kernel<T>(PhantomData<T>);
 
-impl<T: Clone> Point2D for Vector2<T> {
-    type Field = T;
+impl<T: PartialOrd + Zero + Clone> Point2D for Vector2<T> {
+    type Scalar = T;
 
-    fn x(&self) -> Self::Field {
+    fn x(&self) -> Self::Scalar {
         // TODO: maybe Point2D should return references?
         self[0].clone()
     }
 
-    fn y(&self) -> Self::Field {
+    fn y(&self) -> Self::Scalar {
         self[1].clone()
     }
 }
 
-impl<T: FieldNumber + Clone> Point2D for Point2<T> {
-    type Field = T;
+impl<T: 'static + PartialOrd + Zero + Clone + std::fmt::Debug> Point2D for Point2<T> {
+    type Scalar = T;
 
-    fn x(&self) -> Self::Field {
+    fn x(&self) -> Self::Scalar {
         self[0].clone()
     }
 
-    fn y(&self) -> Self::Field {
+    fn y(&self) -> Self::Scalar {
         self.y.clone()
     }
 }
 
-impl<T: Clone + FieldNumber> Kernel2D for NalgebraVector2Kernel<T> {
-    type Point = Vector2<T>;
-
-    type Field = T;
+impl<T: PartialOrd + Zero + Clone> DefaultKernel for Vector2<T> {
+    type Kernel = GenericKernel2D<Self>;
 }
 
-impl<T: Clone + FieldNumber> Kernel2D for NalgebraPoint2Kernel<T> {
-    type Point = Point2<T>;
-
-    type Field = T;
-}
-
-impl<T: Clone + FieldNumber + ClosedAddAssign + ClosedMulAssign + ClosedSubAssign> Operations2D
-    for NalgebraVector2Kernel<T>
-{
-    fn length_sqr(a: &Self::Point) -> Self::Field {
-        a.dot(a)
-    }
-
-    fn distance_sqr(a: &Self::Point, b: &Self::Point) -> Self::Field {
-        let diff = a - b;
-        diff.dot(&diff)
-    }
-
-    fn dot(a: &Self::Point, b: &Self::Point) -> Self::Field {
-        a.dot(b)
-    }
-
-    fn dot_with_origin(a: &Self::Point, b: &Self::Point, origin: &Self::Point) -> Self::Field {
-        (a - origin).dot(&(b - origin))
-    }
-
-    fn cross(a: &Self::Point, b: &Self::Point) -> Self::Field {
-        a[0].clone() * b[1].clone() - a[1].clone() * b[0].clone()
-    }
-
-    fn cross_with_origin(a: &Self::Point, b: &Self::Point, origin: &Self::Point) -> Self::Field {
-        let a_rel = a - origin;
-        let b_rel = b - origin;
-        a_rel[0].clone() * b_rel[1].clone() - a_rel[1].clone() * b_rel[0].clone()
-    }
-}
-
-impl<T: FieldNumber + Clone + ClosedAddAssign + ClosedMulAssign + ClosedSubAssign> Operations2D
-    for NalgebraPoint2Kernel<T>
-{
-    fn length_sqr(a: &Self::Point) -> Self::Field {
-        a.coords.dot(&a.coords)
-    }
-
-    fn distance_sqr(a: &Self::Point, b: &Self::Point) -> Self::Field {
-        let diff = a - b;
-        diff.dot(&diff)
-    }
-
-    fn dot(a: &Self::Point, b: &Self::Point) -> Self::Field {
-        a.coords.dot(&b.coords)
-    }
-
-    fn dot_with_origin(a: &Self::Point, b: &Self::Point, origin: &Self::Point) -> Self::Field {
-        (a - origin).dot(&(b - origin))
-    }
-
-    fn cross(a: &Self::Point, b: &Self::Point) -> Self::Field {
-        a.coords[0].clone() * b.coords[1].clone() - a.coords[1].clone() * b.coords[0].clone()
-    }
-
-    fn cross_with_origin(a: &Self::Point, b: &Self::Point, origin: &Self::Point) -> Self::Field {
-        let a_rel = a - origin;
-        let b_rel = b - origin;
-        a_rel[0].clone() * b_rel[1].clone() - a_rel[1].clone() * b_rel[0].clone()
-    }
-}
-
-impl<T: RealFieldNumber + ClosedAddAssign + ClosedMulAssign + ClosedSubAssign + From<f32>>
-    RealOperations2D for NalgebraVector2Kernel<T>
-{
-    type RealField = T;
-}
-
-impl<T: RealFieldNumber + ClosedAddAssign + ClosedMulAssign + ClosedSubAssign + From<f32>>
-    RealOperations2D for NalgebraPoint2Kernel<T>
-{
-    type RealField = T;
-}
-
-impl<T: Clone + FieldNumber> DefaultKernel for Vector2<T> {
-    type Kernel = NalgebraVector2Kernel<T>;
-}
-
-impl<T: Clone + FieldNumber> DefaultKernel for Point2<T> {
-    type Kernel = NalgebraPoint2Kernel<T>;
+impl<T: 'static + PartialOrd + Zero + Clone + Debug> DefaultKernel for Point2<T> {
+    type Kernel = GenericKernel2D<Self>;
 }
 
 #[cfg(test)]

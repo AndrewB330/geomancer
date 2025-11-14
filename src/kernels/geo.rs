@@ -1,6 +1,6 @@
 use geo::{Coord, CoordNum};
 
-use crate::traits::{DefaultKernel, FieldNumber, Point2D};
+use crate::traits::{DefaultKernel, Point2D};
 
 use super::GenericKernel2D;
 
@@ -8,13 +8,13 @@ impl<T> Point2D for Coord<T>
 where
     T: CoordNum,
 {
-    type Field = T;
+    type Scalar = T;
 
-    fn x(&self) -> Self::Field {
+    fn x(&self) -> Self::Scalar {
         self.x
     }
 
-    fn y(&self) -> Self::Field {
+    fn y(&self) -> Self::Scalar {
         self.y
     }
 }
@@ -23,7 +23,7 @@ pub type GeoCoordKernel<T> = GenericKernel2D<Coord<T>>;
 
 impl<T> DefaultKernel for Coord<T>
 where
-    T: FieldNumber + CoordNum,
+    T: CoordNum,
 {
     type Kernel = GeoCoordKernel<T>;
 }

@@ -1,6 +1,8 @@
+use num_traits::Zero;
+
 use crate::{
     primitives::Polygon,
-    traits::{Kernel2D, Operations2D, RealOperations2D},
+    traits::{Cross2D, Kernel2D, Norm2D},
 };
 
 pub struct ConvexPolygon<K>
@@ -20,16 +22,17 @@ where
         }
     }
 
-    pub fn area(&self) -> K::Field
+    pub fn area(&self) -> K::Scalar
     where
-        K: Operations2D,
+        K: Cross2D,
+        K::Scalar: Zero,
     {
         self.polygon.area()
     }
 
-    pub fn perimeter(&self) -> K::RealField
+    pub fn perimeter(&self) -> K::Real
     where
-        K: RealOperations2D,
+        K: Norm2D,
     {
         self.polygon.perimeter()
     }

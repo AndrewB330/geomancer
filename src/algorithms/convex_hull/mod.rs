@@ -1,12 +1,14 @@
 mod convex_hull_exact_impl;
 mod convex_hull_impl;
-use num_traits::Zero;
+use num_traits::{Float, Zero};
 use std::borrow::Cow;
 
 use crate::{
     common::GeometryError,
-    primitives::ConvexPolygon,
-    traits::{DefaultKernel, ExactPredicates2D, Kernel2D, Operations2D, RealOperations2D},
+    traits::{
+        Cross2D, DefaultKernel, Dot2D, ExactCompareNorm2D, ExactOrientation2D, Kernel2D, Norm2D,
+        NormSqr2D,
+    },
 };
 
 use convex_hull_exact_impl::convex_hull_exact_impl;
@@ -25,7 +27,10 @@ where
 pub fn convex_hull<'a, V>(points: &'a [V]) -> Result<ConvexHull2D<'a, V::Kernel>, GeometryError>
 where
     V: DefaultKernel + Clone,
-    V::Kernel: Operations2D + RealOperations2D,
+    V::Kernel: Norm2D + NormSqr2D + Cross2D + Dot2D,
+    <V::Kernel as Norm2D>::Real: Float,
+    <V::Kernel as Kernel2D>::Scalar: PartialOrd,
+    <V::Kernel as Kernel2D>::Point: Clone,
 {
     ConvexHull2D::<<V as DefaultKernel>::Kernel>::from_points(points)
 }
@@ -36,14 +41,17 @@ pub fn convex_hull_exact<'a, V>(
 ) -> Result<ConvexHull2D<'a, V::Kernel>, GeometryError>
 where
     V: DefaultKernel + Clone,
-    V::Kernel: ExactPredicates2D,
+    V::Kernel: ExactCompareNorm2D + ExactOrientation2D,
+    <V::Kernel as Kernel2D>::Point: PartialEq + Clone,
 {
     ConvexHull2D::<<V as DefaultKernel>::Kernel>::from_points_exact(points, include_collinear)
 }
 
 impl<'a, K> ConvexHull2D<'a, K>
 where
-    K: Kernel2D + Operations2D + RealOperations2D,
+    K: Norm2D + NormSqr2D + Cross2D + Dot2D,
+    K::Scalar: PartialOrd,
+    K::Real: Float,
     K::Point: Clone,
 {
     pub fn from_points_owned(
@@ -70,8 +78,8 @@ where
 
 impl<'a, K> ConvexHull2D<'a, K>
 where
-    K: Kernel2D + ExactPredicates2D,
-    K::Point: Clone,
+    K: ExactCompareNorm2D + ExactOrientation2D,
+    K::Point: PartialEq + Clone,
 {
     pub fn from_points_owned_exact(
         points: impl IntoIterator<Item = K::Point>,
@@ -146,11 +154,12 @@ where
         self.degenerate
     }
 
-    pub fn area(&self) -> K::Field
+    pub fn area(&self) -> K::Scalar
     where
-        K: Operations2D,
+        K: Cross2D,
+        K::Scalar: Zero,
     {
-        let mut area = K::Field::zero();
+        let mut area = K::Scalar::zero();
         let n = self.hull_indices.len();
         for i in 1..(n - 1) {
             let a = &self.points[self.hull_indices[i]];
@@ -160,11 +169,11 @@ where
         area
     }
 
-    pub fn perimeter(&self) -> K::RealField
+    pub fn perimeter(&self) -> K::Real
     where
-        K: RealOperations2D,
+        K: Norm2D,
     {
-        let mut perimeter = K::RealField::zero();
+        let mut perimeter = K::Real::zero();
         let n = self.hull_indices.len();
         for i in 0..n {
             let a = &self.points[self.hull_indices[i]];
@@ -175,29 +184,18 @@ where
     }
 }
 
-impl<'a, K> TryFrom<ConvexHull2D<'a, K>> for ConvexPolygon<K>
-where
-    K: Kernel2D,
-{
-    type Error = GeometryError;
-
-    fn try_from(value: ConvexHull2D<'a, K>) -> Result<ConvexPolygon<K>, Self::Error> {
-        if value.is_degenerate() {
-            Err(GeometryError::DegenerateGeometry)
-        } else {
-            Ok(ConvexPolygon::from_points_unchecked(
-                value.hull_points().cloned().collect(),
-            ))
-        }
-    }
-}
-
 #[cfg(test)]
 mod test {
+    use std::cmp::Ordering;
+
     use rand::{rngs::StdRng, Rng, SeedableRng};
     use rstest::rstest;
 
-    use crate::algorithms::convex_hull;
+    use crate::{
+        algorithms::convex_hull,
+        kernels::GenericKernel2D,
+        traits::{ExactCompareNorm2D, ExactOrientation2D},
+    };
 
     use super::convex_hull_exact;
 
@@ -225,7 +223,7 @@ mod test {
         assert_eq!(a, b);
     }
 
-    #[rstest]
+    /*#[rstest]
     fn robust_test(#[values(2048000)] n: usize) {
         let mut rng: StdRng = SeedableRng::seed_from_u64(n as u64);
         let runs = (1e8 / n as f32) as usize + 1;
@@ -268,10 +266,53 @@ mod test {
 
             assert!(points.len() > 0);
         }
+    }*/
+
+    // Temporary implementation for tests only TODO: remove or replace
+    unsafe impl ExactCompareNorm2D for GenericKernel2D<(f32, f32)> {
+        fn compare_distance(a: &Self::Point, b: &Self::Point, to: &Self::Point) -> Ordering {
+            // Cast to f64 first
+            let a = (a.0 as f64, a.1 as f64);
+            let b = (b.0 as f64, b.1 as f64);
+            let to = (to.0 as f64, to.1 as f64);
+            let da = (a.0 - to.0) * (a.0 - to.0) + (a.1 - to.1) * (a.1 - to.1);
+            let db = (b.0 - to.0) * (b.0 - to.0) + (b.1 - to.1) * (b.1 - to.1);
+            da.partial_cmp(&db).unwrap()
+        }
+
+        fn compare_length(a: &Self::Point, b: &Self::Point) -> Ordering {
+            // cast fo f64 first
+            let a = (a.0 as f64, a.1 as f64);
+            let b = (b.0 as f64, b.1 as f64);
+            let da = a.0 * a.0 + a.1 * a.1;
+            let db = b.0 * b.0 + b.1 * b.1;
+            da.partial_cmp(&db).unwrap()
+        }
+    }
+
+    unsafe impl ExactOrientation2D for GenericKernel2D<(f32, f32)> {
+        fn orientation(
+            a: &Self::Point,
+            b: &Self::Point,
+            c: &Self::Point,
+        ) -> crate::common::Orientation2D {
+            // Cast to f64 first
+            let a = (a.0 as f64, a.1 as f64);
+            let b = (b.0 as f64, b.1 as f64);
+            let c = (c.0 as f64, c.1 as f64);
+            let val = (b.0 - a.0) * (c.1 - a.1) - (b.1 - a.1) * (c.0 - a.0);
+            if val > 0.0 {
+                crate::common::Orientation2D::CounterClockwise
+            } else if val < 0.0 {
+                crate::common::Orientation2D::Clockwise
+            } else {
+                crate::common::Orientation2D::Collinear
+            }
+        }
     }
 
     // Tiny stress test for sanity check.
-    /*#[rstest]
+    #[rstest]
     fn random_test(#[values(1, 2, 3, 4, 8, 16, 32, 64, 128, 512, 2048, 8192)] n: usize) {
         let mut rng: StdRng = SeedableRng::seed_from_u64(n as u64);
 
@@ -286,8 +327,8 @@ mod test {
             }
             let res = convex_hull(&points);
             // todo:
-            let res_exact = convex_hull(&points);
-            //let res_exact = convex_hull_exact(&points, false);
+            //let res_exact = convex_hull(&points);
+            let res_exact = convex_hull_exact(&points, false);
 
             assert!(res.is_ok());
             assert!(res_exact.is_ok());
@@ -315,5 +356,5 @@ mod test {
                 );
             }
         }
-    }*/
+    }
 }

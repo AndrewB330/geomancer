@@ -3,6 +3,7 @@ use std::fmt;
 #[derive(Debug)]
 pub enum GeometryError {
     InputIsEmpty,
+    InputHasTooFewPoints,
     InputValueInvalidForField,
     ExactPredicateReturnedConflictingResult(String),
     DegenerateGeometry,
@@ -31,6 +32,7 @@ impl fmt::Display for GeometryError {
                 f,
                 "The geometry is not convex, which is required for this operation."
             ),
+            GeometryError::InputHasTooFewPoints => todo!(),
         }
     }
 }

@@ -7,9 +7,47 @@
 ## Geomancer
 Performance-oriented Rust library providing a suite of geometry primitives and algorithms for efficient computational geometry.
 
-Supported types:
-- `Vec2` from [`bevy`](https://github.com/bevyengine/bevy) crate (use `bevy_math` feature)
-- `Point2<T>` from [`nalgebra`](https://github.com/dimforge/nalgebra) crate (use `nalgebra` feature)
+#### Supported types:
+- `(f32, f32)`, `(f64, f64)` - rust tuples
+- `[f32;2]`, `[f64;2]` - rust arrays
+- `Vec2` from [`bevy`](https://github.com/bevyengine/bevy) crate
+- `Point2<T>` from [`nalgebra`](https://github.com/dimforge/nalgebra) crate
+- `Coord<T>` from [`geo`]() crate
+
+#### Supported algortihms:
+- 2D
+  - convex hull
+  - farthest points
+
+
+## Examples
+#### Convex hull
+```rust
+use geomancer::algorithms::convex_hull;
+
+// ...
+
+let points = [(0.1, 0.2), (10.0, -1.0), (5.0, 2.0), (7.0, 7.0)];
+
+let result = convex_hull(&points).unwrap();
+
+println!("Points that are part of the convex hull: {:?}", result.hull_points());
+println!("Points that are not part of the convex hull: {:?}", result.inside_points());
+println!("Area: {} Perimeter: {}", result.area(), result.perimeter());
+
+// Find convex hull using exact math, without rounding and floating point errors.
+let result_exact = convex_hull_exact(&points, false /* include_collinear */).unwrap();
+```
+#### Farthest points
+```rust
+use geomancer::algorithms::farthest_points;
+
+// ...
+
+let points = [(0.0, 0.0), (10.0, 1.0), (-5.0, -1.0)];
+
+let (point_a_idx, point_b_idx) = farthest_points(&points).unwrap();
+```
 
 ## Default kernels
 Geomancer provides a range of default kernels tailored to different libraries. Each kernel defines a set of operations for a specific vector or point type. By enabling the corresponding feature, the DefaultKernel trait is automatically implemented for that type.
@@ -38,45 +76,19 @@ impl DefaultKernel for MY_VECTOR_TYPE {
 ```
 Using a specialized kernel is preferable when available, as it may include optimizations tailored to that particular vector type.
 
-## Examples
-```rust
-use geomancer::algorithms2d::convex_hull;
-
-// ...
-
-let points = [Vec2::new(0.1, 0.2), Vec2::new(10.0, -1.0), Vec2::new(5.0, 2.0), Vec2::new(7.0, 7.0)];
-
-// Regular convex hull algorithm, works well for all real world scenarios.
-// Robustly handles all degenerate cases. If there are points
-// that are very close together, or are close to being collinear it may
-// skip some points to ensure numerical stability for the rest of
-// computations. It is guaranteed that resulting convex hull is within
-// narrow tolerance from an actual exact convex hull. If set of points
-// does not contain near-collinear points, or points that are too close together
-// it will return actual exact convex hull.
-let result = convex_hull(&points);
-println!("Points that are part of the convex hull: {:?}", result.hull_points());
-println!("Points that are not part of the convex hull: {:?}", result.inside_points());
-println!("Area of the convex hull: {}", result.area());
-
-let result_exact = convex_hull_exact(&points, false /* include_collinear */);
-// Regular convex hull is within a narrow tolerance of the exact convex hull.
-assert!((result_exact.area() - result.area()) < 1e-5);
-```
-
 ## Traits
 ```rust
 /// A trait for 2D points with x and y coordinates
 pub trait Point2D {
-    type Field;
-    fn x(&self) -> Self::Field;
-    fn y(&self) -> Self::Field;
+    type Scalar;
+    fn x(&self) -> Self::Scalar;
+    fn y(&self) -> Self::Scalar;
 }
 
 /// Base trait for 2 dimensional geometric kernel that defines number and point type.
 pub trait Kernel2D {
-    type Point: Point2D<Field = Self::Field>;
-    type Field: FieldNumber;
+    type Point;
+    type Scalar;
 }
 ```
 

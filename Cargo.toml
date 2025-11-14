@@ -14,7 +14,6 @@ categories = ["algorithms", "graphics"]
 
 [dependencies]
 num-traits = "0.2"
-robust = "1"
 # Optional dependencies
 bevy_math = { package = "bevy_math", version = "0.15", optional = true, default-features = false }
 nalgebra = { package = "nalgebra", version = "0.33", optional = true, default-features = false }
@@ -27,4 +26,5 @@ array_kernels = []
 
 [dev-dependencies]
 rstest = "0.25"
+robust = "1"
 rand = "0.9"

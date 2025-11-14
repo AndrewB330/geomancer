@@ -1,26 +1,27 @@
 use crate::{
     common::GeometryError,
-    traits::{FieldNumber, Kernel2D, Operations2D, Point2D, RealOperations2D},
+    traits::{Cross2D, Dot2D, Kernel2D, Norm2D, NormSqr2D},
 };
 use num_traits::{Float, Zero};
 
 fn farthest_point<K>(points: &[K::Point], from_point: Option<&K::Point>) -> usize
 where
-    K: Kernel2D + Operations2D + RealOperations2D,
+    K: Kernel2D + NormSqr2D,
+    K::Scalar: PartialOrd,
 {
     let mut farthest_point = 0;
     if let Some(from_point) = from_point {
         for i in 1..points.len() {
-            if K::RealField::from(K::distance_sqr(from_point, &points[farthest_point]))
-                < K::RealField::from(K::distance_sqr(from_point, &points[i]))
+            if K::distance_sqr(from_point, &points[farthest_point])
+                < K::distance_sqr(from_point, &points[i])
             {
                 farthest_point = i;
             }
         }
     } else {
         for i in 1..points.len() {
-            if K::RealField::from(K::length_sqr(&points[farthest_point]))
-                < K::RealField::from(K::length_sqr(&points[i]))
+            if K::distance_sqr_to_zero(&points[farthest_point])
+                < K::distance_sqr_to_zero(&points[i])
             {
                 farthest_point = i;
             }
@@ -31,17 +32,18 @@ where
 
 pub(super) fn convex_hull_impl<K>(points: &[K::Point]) -> Result<(Vec<usize>, bool), GeometryError>
 where
-    K: Kernel2D + Operations2D + RealOperations2D,
+    K: Kernel2D + NormSqr2D + Norm2D + Cross2D + Dot2D,
+    K::Scalar: PartialOrd,
 {
     if points.is_empty() {
         return Err(GeometryError::InputIsEmpty);
     }
 
-    for p in points {
+    /*for p in points {
         if !p.x().is_valid() || !p.y().is_valid() {
             return Err(GeometryError::InputValueInvalidForField);
         }
-    }
+    }*/
 
     // todo: add short comment why this if is there
     if points.len() == 1 {
@@ -54,17 +56,17 @@ where
     let distance = K::distance(&points[first_point], &points[second_point]);
 
     // todo: explain this
-    let max_magnitude = K::RealField::max(
-        distance * K::RealField::from(1.732051),
-        K::length(&points[first_point]),
+    let max_magnitude = K::Real::max(
+        distance * K::Real::from(1.732051),
+        K::distance_to_zero(&points[first_point]),
     );
 
-    let epsilon = max_magnitude * K::RealField::epsilon() * K::RealField::from(2.0);
+    let epsilon = max_magnitude * K::Real::epsilon() * K::Real::from(2.0);
 
     // Distance between two farthest points is less than (2 * epsilon) - all points are too close
     // to each other to build a convex hull from more than one point.
     // Return single point, because it is the best approximation of a convex hull in this case.
-    if distance < epsilon * K::RealField::from(2.0) {
+    if distance < epsilon * K::Real::from(2.0) {
         return Ok((vec![first_point], true));
     }
 
@@ -76,14 +78,14 @@ where
             continue;
         }
 
-        let signed_area: K::RealField =
+        let signed_area: K::Real =
             K::cross_with_origin(&points[second_point], &points[i], &points[first_point]).into();
 
         // We want to use only points that are at least at (2 * epsilon) distance from
         // the the segment that connects first_point and second_point. This is to ensure
         // that all candidates are far enough from collinearity with first and second points.
-        if signed_area.abs() / distance > epsilon * K::RealField::from(2.0) {
-            if signed_area > K::RealField::zero() {
+        if signed_area.abs() / distance > epsilon * K::Real::from(2.0) {
+            if signed_area > K::Real::zero() {
                 candidates_left.push(i);
             } else {
                 candidates_right.push(i);
@@ -119,24 +121,25 @@ fn quickhull_recursive<K>(
     right_point: usize,
     left_point: usize,
     candidates: Vec<usize>,
-    epsilon: K::RealField,
+    epsilon: K::Real,
     result: &mut Vec<usize>,
 ) where
-    K: Kernel2D + Operations2D + RealOperations2D,
+    K: Kernel2D + Dot2D + Cross2D + Norm2D,
+    K::Real: Float + From<f32>,
 {
     if candidates.len() == 0 {
         result.push(right_point);
         return;
     }
 
-    let cross_real = |a: usize, b: usize, c: usize| -> K::RealField {
+    let cross_real = |a: usize, b: usize, c: usize| -> K::Real {
         K::cross_with_origin(&points[a], &points[b], &points[c]).into()
     };
-    let dot_real = |a: usize, b: usize, c: usize| -> K::RealField {
+    let dot_real = |a: usize, b: usize, c: usize| -> K::Real {
         K::dot_with_origin(&points[a], &points[b], &points[c]).into()
     };
 
-    let mut cross_max = K::RealField::zero();
+    let mut cross_max = K::Real::zero();
 
     let mut farthest = candidates[0];
     for i in &candidates {
@@ -183,9 +186,11 @@ fn quickhull_recursive<K>(
 mod test {
     use core::f32;
 
+    use num_traits::Float;
+
     use crate::{
         common::assert_eq_cycle,
-        traits::{DefaultKernel, Operations2D, Point2D, RealOperations2D},
+        traits::{Cross2D, DefaultKernel, Dot2D, Kernel2D, Norm2D, NormSqr2D},
     };
 
     use super::convex_hull_impl;
@@ -196,8 +201,10 @@ mod test {
 
     fn assert_convex_hull<'a, V>(points: &'a [V], expected: &[usize])
     where
-        V: DefaultKernel + Point2D,
-        V::Kernel: Operations2D + RealOperations2D,
+        V: DefaultKernel,
+        V::Kernel: NormSqr2D + Norm2D + Cross2D + Dot2D,
+        <V::Kernel as Kernel2D>::Scalar: PartialOrd,
+        <V::Kernel as Norm2D>::Real: Float + From<f32>,
     {
         let hull = convex_hull_impl::<V::Kernel>(points);
         assert!(hull.is_ok());

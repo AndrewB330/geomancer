@@ -1,18 +1,20 @@
-use crate::traits::{DefaultKernel, FieldNumber, Point2D};
+use num_traits::Float;
+
+use crate::traits::{DefaultKernel, Point2D};
 
 use super::GenericKernel2D;
 
 impl<T> Point2D for [T; 2]
 where
-    T: FieldNumber,
+    T: Float,
 {
-    type Field = T;
+    type Scalar = T;
 
-    fn x(&self) -> Self::Field {
+    fn x(&self) -> Self::Scalar {
         self[0].clone()
     }
 
-    fn y(&self) -> Self::Field {
+    fn y(&self) -> Self::Scalar {
         self[1].clone()
     }
 }
@@ -21,7 +23,7 @@ pub type ArrayKernel2D<T> = GenericKernel2D<[T; 2]>;
 
 impl<T> DefaultKernel for [T; 2]
 where
-    T: FieldNumber,
+    T: Float,
 {
     type Kernel = ArrayKernel2D<T>;
 }

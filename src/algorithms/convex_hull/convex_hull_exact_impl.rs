@@ -2,12 +2,12 @@ use std::cmp::Ordering;
 
 use crate::{
     common::{GeometryError, Orientation2D},
-    traits::{ExactPredicates2D, FieldNumber, Kernel2D, Point2D},
+    traits::{ExactCompareNorm2D, ExactOrientation2D, Kernel2D},
 };
 
 fn farthest_point<K>(points: &[K::Point], from_point: usize) -> usize
 where
-    K: Kernel2D + ExactPredicates2D,
+    K: Kernel2D + ExactCompareNorm2D,
 {
     let mut farthest_point = 0;
     for i in 1..points.len() {
@@ -22,7 +22,7 @@ where
 
 fn extreme_point<K>(points: &[K::Point], from_point: usize, rightmost: bool) -> usize
 where
-    K: Kernel2D + ExactPredicates2D,
+    K: Kernel2D + ExactOrientation2D,
 {
     let mut extreme_point = 0;
     for i in 1..points.len() {
@@ -41,17 +41,18 @@ pub(super) fn convex_hull_exact_impl<K>(
     include_colinear: bool,
 ) -> Result<(Vec<usize>, bool), GeometryError>
 where
-    K: Kernel2D + ExactPredicates2D,
+    K: ExactCompareNorm2D + ExactOrientation2D,
+    K::Point: PartialEq,
 {
     if points.is_empty() {
         return Err(GeometryError::InputIsEmpty);
     }
 
-    for p in points {
+    /*for p in points {
         if !p.x().is_valid() || !p.y().is_valid() {
             return Err(GeometryError::InputValueInvalidForField);
         }
-    }
+    }*/
 
     // todo: add short comment why this is here
     if points.len() == 1 {
@@ -64,14 +65,14 @@ where
     let leftmost_point = extreme_point::<K>(points, first_point, false);
 
     // todo: add short comment why this is here
-    if K::is_same_point(&points[first_point], &points[second_point]) {
+    if points[first_point] == points[second_point] {
         return Ok((vec![first_point], true));
     }
 
     let mut candidates: Vec<usize> = vec![];
 
     for i in 0..points.len() {
-        if !K::is_same_point(&points[first_point], &points[i]) {
+        if points[first_point] != points[i] {
             candidates.push(i);
         }
     }
@@ -111,7 +112,7 @@ where
     let mut result = vec![first_point, candidates[0]];
 
     for candidate in candidates {
-        if K::is_same_point(&points[candidate], &points[*result.last().unwrap()]) {
+        if points[candidate] == points[*result.last().unwrap()] {
             continue;
         }
 
@@ -168,7 +169,7 @@ where
 mod test {
     use crate::{
         common::assert_eq_cycle,
-        traits::{DefaultKernel, ExactPredicates2D, Point2D},
+        traits::{DefaultKernel, ExactCompareNorm2D, ExactOrientation2D, Kernel2D},
     };
 
     use super::convex_hull_exact_impl;
@@ -183,8 +184,9 @@ mod test {
 
     fn assert_convex_hull<'a, V>(points: &'a [V], expected: &[usize], include_collinear: bool)
     where
-        V: DefaultKernel + Point2D,
-        V::Kernel: ExactPredicates2D,
+        V: DefaultKernel,
+        V::Kernel: ExactCompareNorm2D + ExactOrientation2D,
+        <V::Kernel as Kernel2D>::Point: Eq,
     {
         let hull = convex_hull_exact_impl::<V::Kernel>(points, include_collinear);
         assert!(hull.is_ok());
