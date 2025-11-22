@@ -1,6 +1,5 @@
-pub mod algorithms;
+pub mod algorithm;
 pub mod common;
-pub mod kernels;
+pub mod kernel;
 pub mod prelude;
 pub mod primitives;
-pub mod traits;

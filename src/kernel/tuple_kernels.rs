@@ -1,6 +1,6 @@
 use num_traits::Float;
 
-use crate::traits::{DefaultKernel, Point2D};
+use super::{DefaultKernel, Point2D};
 
 use super::GenericKernel2D;
 

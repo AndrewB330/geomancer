@@ -2,7 +2,9 @@ use std::marker::PhantomData;
 
 use num_traits::{Float, Num};
 
-use crate::traits::{Cross2D, Dot2D, Kernel2D, Norm2D, NormSqr2D, Point2D};
+use crate::algorithm::DefaultAlgorithmBundle;
+
+use super::{Cross2D, Dot2D, Kernel2D, Norm2D, NormSqr2D, Point2D};
 
 pub struct GenericKernel2D<V>(PhantomData<V>);
 
@@ -12,6 +14,7 @@ where
 {
     type Point = V;
     type Scalar = V::Scalar;
+    type Algorithms = DefaultAlgorithmBundle;
 }
 
 impl<V> NormSqr2D for GenericKernel2D<V>
@@ -19,13 +22,13 @@ where
     V: Point2D,
     V::Scalar: Num + Clone,
 {
-    fn distance_sqr(a: &Self::Point, b: &Self::Point) -> Self::Scalar {
+    fn distance_sqr(&self, a: &Self::Point, b: &Self::Point) -> Self::Scalar {
         let dx = a.x() - b.x();
         let dy = a.y() - b.y();
         dx.clone() * dx + dy.clone() * dy
     }
 
-    fn distance_sqr_to_zero(a: &Self::Point) -> Self::Scalar {
+    fn distance_sqr_to_zero(&self, a: &Self::Point) -> Self::Scalar {
         let dx = a.x();
         let dy = a.y();
         dx.clone() * dx + dy.clone() * dy
@@ -39,12 +42,12 @@ where
 {
     type Real = V::Scalar;
 
-    fn distance(a: &Self::Point, b: &Self::Point) -> Self::Real {
-        (Self::distance_sqr(a, b)).sqrt()
+    fn distance(&self, a: &Self::Point, b: &Self::Point) -> Self::Real {
+        (self.distance_sqr(a, b)).sqrt()
     }
 
-    fn distance_to_zero(a: &Self::Point) -> Self::Real {
-        (Self::distance_sqr_to_zero(a)).sqrt()
+    fn distance_to_zero(&self, a: &Self::Point) -> Self::Real {
+        (self.distance_sqr_to_zero(a)).sqrt()
     }
 }
 
@@ -53,11 +56,16 @@ where
     V: Point2D,
     V::Scalar: Num,
 {
-    fn cross(a: &Self::Point, b: &Self::Point) -> Self::Scalar {
+    fn cross(&self, a: &Self::Point, b: &Self::Point) -> Self::Scalar {
         a.x() * b.y() - a.y() * b.x()
     }
 
-    fn cross_with_origin(a: &Self::Point, b: &Self::Point, origin: &Self::Point) -> Self::Scalar {
+    fn cross_with_origin(
+        &self,
+        a: &Self::Point,
+        b: &Self::Point,
+        origin: &Self::Point,
+    ) -> Self::Scalar {
         let adx = a.x() - origin.x();
         let ady = a.y() - origin.y();
         let bdx = b.x() - origin.x();
@@ -71,11 +79,16 @@ where
     V: Point2D,
     V::Scalar: Num,
 {
-    fn dot(a: &Self::Point, b: &Self::Point) -> Self::Scalar {
+    fn dot(&self, a: &Self::Point, b: &Self::Point) -> Self::Scalar {
         a.x() * b.x() + a.y() * b.y()
     }
 
-    fn dot_with_origin(a: &Self::Point, b: &Self::Point, origin: &Self::Point) -> Self::Scalar {
+    fn dot_with_origin(
+        &self,
+        a: &Self::Point,
+        b: &Self::Point,
+        origin: &Self::Point,
+    ) -> Self::Scalar {
         let adx = a.x() - origin.x();
         let ady = a.y() - origin.y();
         let bdx = b.x() - origin.x();

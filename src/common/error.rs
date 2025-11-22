@@ -8,6 +8,7 @@ pub enum GeometryError {
     ExactPredicateReturnedConflictingResult(String),
     DegenerateGeometry,
     NotConvexGeometry,
+    Unknown,
 }
 
 impl fmt::Display for GeometryError {
@@ -33,6 +34,7 @@ impl fmt::Display for GeometryError {
                 "The geometry is not convex, which is required for this operation."
             ),
             GeometryError::InputHasTooFewPoints => todo!(),
+            GeometryError::Unknown => todo!(),
         }
     }
 }

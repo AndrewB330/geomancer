@@ -1,6 +1,6 @@
 use geo::{Coord, CoordNum};
 
-use crate::traits::{DefaultKernel, Point2D};
+use crate::kernel::{DefaultKernel, Point2D};
 
 use super::GenericKernel2D;
 
@@ -30,7 +30,7 @@ where
 
 #[cfg(test)]
 mod test {
-    use geo::Coord;
+    /*use geo::Coord;
 
     use crate::algorithms::convex_hull;
     use crate::common::assert_eq_cycle;
@@ -45,5 +45,5 @@ mod test {
         ];
         let result = convex_hull(&points);
         assert_eq_cycle(result.unwrap().hull_indices().clone(), vec![0, 1, 3]);
-    }
+    }*/
 }

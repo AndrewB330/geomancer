@@ -1,5 +1,5 @@
-mod generic;
 
+mod generic;
 pub use generic::GenericKernel2D;
 
 #[cfg(feature = "bevy_math")]
@@ -28,3 +28,9 @@ mod array_kernels;
 
 #[cfg(feature = "array_kernels")]
 pub use array_kernels::ArrayKernel2D;
+
+mod standard_kernel;
+pub use standard_kernel::{StandardKernel2D, Vec2D};
+
+mod traits;
+pub use traits::*;

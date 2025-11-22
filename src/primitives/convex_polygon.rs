@@ -1,17 +1,17 @@
 use num_traits::Zero;
 
 use crate::{
-    primitives::Polygon,
-    traits::{Cross2D, Kernel2D, Norm2D},
+    primitives::{Polygon, SimplePolygon},
+    kernel::{Cross2D, Kernel2D, Norm2D},
 };
-
 pub struct ConvexPolygon<K>
 where
     K: Kernel2D,
 {
-    pub(super) polygon: Polygon<K>,
+    inner: SimplePolygon<K>,
 }
 
+/*
 impl<K> ConvexPolygon<K>
 where
     K: Kernel2D,
@@ -46,3 +46,4 @@ where
         value.polygon
     }
 }
+ */

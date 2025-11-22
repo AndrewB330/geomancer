@@ -51,7 +51,6 @@ impl<'a, K> ConvexHull2D<'a, K>
 where
     K: Norm2D + NormSqr2D + Cross2D + Dot2D,
     K::Scalar: PartialOrd,
-    K::Real: Float,
     K::Point: Clone,
 {
     pub fn from_points_owned(
