@@ -9,22 +9,30 @@ documentation = "https://docs.rs/geomancer"
 repository = "https://github.com/AndrewB330/geomancer"
 homepage = "https://github.com/AndrewB330/geomancer"
 license = "MIT OR Apache-2.0"
-keywords = ["geometry", "algorithms"]
-categories = ["algorithms", "graphics"]
+keywords = ["geometry", "algorithms", "convex-hull", "triangulation", "computational-geometry"]
+categories = ["algorithms", "graphics", "mathematics", "no-std"]
 
 [dependencies]
-num-traits = "0.2"
-# Optional dependencies
-bevy_math = { package = "bevy_math", version = "0.15", optional = true, default-features = false }
-nalgebra = { package = "nalgebra", version = "0.33", optional = true, default-features = false }
-geo = { package = "geo", version = "0.29", optional = true, default-features = false }
+num-traits = { version = "0.2", default-features = false }
+
+# Optional integrations
+bevy_math = { version = "0.15", optional = true, default-features = false }
+glam = { version = "0.30", optional = true, default-features = false }
+nalgebra = { version = "0.33", optional = true, default-features = false }
+geo = { version = "0.29", optional = true, default-features = false }
 
 [features]
-default = ["geo", "nalgebra", "bevy_math", "tuple_kernels", "array_kernels"]
+default = ["std"]
+std = ["num-traits/std"]
+# Built-in kernel implementations for primitive types
 tuple_kernels = []
 array_kernels = []
+# External library integrations
+bevy = ["dep:bevy_math"]
+glam = ["dep:glam"]
+nalgebra = ["dep:nalgebra"]
+geo = ["dep:geo"]
 
 [dev-dependencies]
 rstest = "0.25"
-robust = "1"
 rand = "0.9"
